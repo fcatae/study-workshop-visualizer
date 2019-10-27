@@ -136,7 +136,7 @@ output application/json
 ---
 {
   message: "ok",
-  last_order: 12
+  last_order: payload
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
