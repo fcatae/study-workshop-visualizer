@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
     <http:listener-config name="customer-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
@@ -124,7 +126,10 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\status:customer-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+        <os:retrieve doc:name="Get LOOP_ID" doc:id="1b093b2e-8197-46bf-bd23-ea7136bfa00d" key="LOOP_ID">
+			<os:default-value ><![CDATA[#[-1]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="16089095-822a-42d3-b857-379221cbfe04">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -136,4 +141,19 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
+	<flow name="Customer_Loop" doc:id="e779afca-3eb6-459b-8829-6a979e3c4e96" tracking:enable-default-events="true">
+		<scheduler doc:name="Every 10 sec" doc:id="0f2e1bac-5fd4-461b-8270-d8fbcddc3ac6" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="10000"/>
+			</scheduling-strategy>
+		</scheduler>
+		<os:retrieve doc:name="Get LOOP_ID" doc:id="506515a8-0029-4836-ac33-6bb0d64b7f65" key="LOOP_ID" target="loop_id" targetValue="#[payload as Number]">
+			<os:default-value ><![CDATA[#[0]]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Show ID" doc:id="c0edbe8a-c96f-4b1b-aea0-6882af616f2e" message='#["LOOP_ID = " ++ (vars.loop_id as String)]'/>
+		<tracking:transaction doc:name="LOOP_ID_&lt;n&gt;" doc:id="c320579d-7f06-4f08-b20d-d5dadd9578de" id='#["LOOP_ID_" ++ (vars.loop_id as String)]'/>
+		<os:store doc:name="LOOP_ID+1" doc:id="8a78af62-b9d8-478b-9bad-649aa8d6f055" key="LOOP_ID">
+			<os:value ><![CDATA[#[(vars.loop_id as Number) + 1]]]></os:value>
+		</os:store>
+	</flow>
 </mule>
