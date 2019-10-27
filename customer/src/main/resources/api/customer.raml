@@ -1,0 +1,13 @@
+#%RAML 1.0
+title: Customer
+version: v1
+mediaType: 
+  - application/json
+
+/status:
+  get:
+    responses:
+      200:        
+        body:
+          example: { message: "ok", last_order: 12 }
+            
