@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+<mule xmlns:orders-api="http://www.mulesoft.org/schema/mule/orders-api" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/orders-api http://www.mulesoft.org/schema/mule/orders-api/current/mule-orders-api.xsd">
     <http:listener-config name="customer-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="customer-config" api="customer.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="customer-main">
+    <orders-api:config name="Orders_API_Config" doc:name="Orders API Config" doc:id="e744deda-4b05-4c70-b1ba-37634334bda0" property_host="vis-orders.us-e2.cloudhub.io" property_port="80" property_protocol="HTTP" property_basePath="/api" >
+		<orders-api:connection />
+	</orders-api:config>
+	<flow name="customer-main">
         <http:listener config-ref="customer-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -152,6 +156,7 @@ output application/json
 		</os:retrieve>
 		<logger level="INFO" doc:name="Show ID" doc:id="c0edbe8a-c96f-4b1b-aea0-6882af616f2e" message='#["LOOP_ID = " ++ (vars.loop_id as String)]'/>
 		<tracking:transaction doc:name="LOOP_ID_&lt;n&gt;" doc:id="c320579d-7f06-4f08-b20d-d5dadd9578de" id='#["LOOP_ID_" ++ (vars.loop_id as String)]'/>
+		<orders-api:orders-create doc:name="Orders_Create" doc:id="27085ea9-70c0-4ba4-b3ba-1bfb3ab7e605" config-ref="Orders_API_Config"/>
 		<os:store doc:name="LOOP_ID+1" doc:id="8a78af62-b9d8-478b-9bad-649aa8d6f055" key="LOOP_ID">
 			<os:value ><![CDATA[#[(vars.loop_id as Number) + 1]]]></os:value>
 		</os:store>
