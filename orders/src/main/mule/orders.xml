@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:twitter-api="http://www.mulesoft.org/schema/mule/twitter-api" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/twitter-api http://www.mulesoft.org/schema/mule/twitter-api/current/mule-twitter-api.xsd">
     <http:listener-config name="orders-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="orders-config" api="orders.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="orders-main">
+    <twitter-api:config name="Twitter_API_Config" doc:name="Twitter API Config" doc:id="a5194a3e-b3ed-4e0d-bec0-3781747a2161" property_host="vis-twitter.us-e2.cloudhub.io" property_port="80" property_protocol="HTTP" property_basePath="/api" >
+		<twitter-api:connection />
+	</twitter-api:config>
+	<flow name="orders-main">
         <http:listener config-ref="orders-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -128,5 +132,7 @@ output application/json
     </flow>
     <flow name="post:\orders:orders-config">
         <logger level="INFO" message="post:\orders:orders-config" />
+		<twitter-api:messages-publish doc:name="Messages_Publish" doc:id="4aeedfd0-37b9-41b1-8a36-a175dc957dba" config-ref="Twitter_API_Config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f6fa6735-8ed7-4d5e-9729-b7a4353a5c3a" />
     </flow>
 </mule>
